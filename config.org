@@ -198,6 +198,11 @@ What babel do you want in source code?
 #+RESULTS:
 : index.md
 
+** Agda
+#+begin_src emacs-lisp
+(load-file (let ((coding-system-for-read 'utf-8))
+                (shell-command-to-string "agda-mode locate")))
+#+end_src
 * Chinese
 
 ** Pyim

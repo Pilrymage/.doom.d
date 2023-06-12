@@ -122,6 +122,9 @@
 (setq org-hugo-date-format "YYYY-MM-DD") ; Customize the date format
 (setq org-hugo-section-directory "index.md") ; Export leaf bundles to /content/post/my-first-post/index.md
 
+(load-file (let ((coding-system-for-read 'utf-8))
+                (shell-command-to-string "agda-mode locate")))
+
 (pyim-basedict-enable)
 (setq default-input-method "pyim")
 (pyim-default-scheme 'microsoft-shuangpin)
