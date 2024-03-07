@@ -1,199 +1,97 @@
 #+title: Config
 
 * TODO Intro
+** 编辑器外观与主题
 #+begin_src emacs-lisp
-;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
+(setq frame-resize-pixelwise t)         ;窗口大小调整像素级别
+(setq tab-width 2)                      ;tab宽度
+(add-to-list 'default-frame-alist '(undecorated . t)) ; 无标题栏
+(setq scroll-margin 4) ; 显示上下边界，让光标不至于在屏幕边缘
+(add-to-list 'default-frame-alist '(alpha-background . 70)) ; 透明背景
+;; (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)) ;透明同色标题栏
+;; (add-to-list 'default-frame-alist '(ns-appearance . dark)) ; 透明标题栏主题色
+#+end_src
 
-;; Place your private configuration here! Remember, you do not need to run 'doom
-;; sync' after modifying this file!
+#+begin_src emacs-lisp
+(set-frame-parameter nil 'alpha-background 57) ; 设置透明度
+;; (global-set-key (kbd "<f7>") 'org-agenda) ; 设置快捷键 DEPRECATED
+;; (global-set-key (kbd "<f12>") (lambda ()
+;;                                 (interactive)
+;;                                 (call-interactively 'org-store-link)
+;;                                 (org-capture nil "i"))) ; 设置快捷键 DEPRECATED
+
+(setq doom-theme 'doom-dracula)         ; 主题加载
+(setq display-line-numbers-type t)      ; 行号显示
+(setq org-directory "~/org")            ; org主目录，也是很多东西被organized的主目录，简短仅次于根目录
+(setq org-roam-directory "~/orgroam")   ; roam特别地需要一个目录
+(setq my/org-agenda-inbox "~/org/agenda/inbox.org") ; inbox.org的路径
+
+(beacon-mode 1)                         ; 光标跳动，如有神力，let there be light
+
+(defun my/open-agenda-inbox-capture ()
+  "打开inbox.org并且插入一个新的headline"
+  (interactive)
+  (find-file my/org-agenda-inbox)
+  (goto-char (point-max))
+  (evil-append 1)
+  (yas-expand-snippet (yas-lookup-snippet "new_headline")))
+
+(defun my/open-agenda-inbox ()
+  "打开inbox.org"
+  (interactive)
+  (find-file my/org-agenda-inbox))
+
+(map! :after org :map evil-normal-state-map ; 设置快捷键
+      :prefix "SPC n e"
+      :desc "Insert inbox"
+      "j" #'my/open-agenda-inbox-capture
+      "k" #'my/open-agenda-inbox)
 
 
-;; Some functionality uses this to identify you, e.g. GPG configuration, email
-;; clients, file templates and snippets. It is optional.
-;; (setq user-full-name "John Doe"
-;;       user-mail-address "john@doe.com")
-
-;; Doom exposes five (optional) variables for controlling fonts in Doom:
-;;
-;; - `doom-font' -- the primary font to use
-;; - `doom-variable-pitch-font' -- a non-monospace font (where applicable)
-;; - `doom-big-font' -- used for `doom-big-font-mode'; use this for
-;;   presentations or streaming.
-;; - `doom-unicode-font' -- for unicode glyphs
-;; - `doom-serif-font' -- for the `fixed-pitch-serif' face
-;;
-
-(setq frame-resize-pixelwise t)
-(setq tab-width 2)
-
-;; (add-to-list 'default-frame-alist '(undecorated . t))
-
-;(add-to-list 'default-frame-alist '(alpha-background . 90))
-(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-(add-to-list 'default-frame-alist '(ns-appearance . dark))
-;; (setq ns-use-proxy-icon nil)
-;; (setq frame-title-format nil)
-(setq scroll-margin 6)
-;(set-frame-parameter nil 'alpha-background 97)
-(global-set-key (kbd "<f4>") (lambda () (interactive) (find-file "~/org/agenda/inbox.org")))
-(global-set-key (kbd "<f5>") (lambda () (interactive) (find-file "~/.doom.d/config.org")))
-(global-set-key (kbd "<f6>") (lambda () (interactive) (find-file "~/Dropbox/emacs/agenda/agenda.org")))
-(global-set-key (kbd "<f7>") 'org-agenda)
-(global-set-key (kbd "<f12>") (lambda ()
-                                (interactive)
-                                (call-interactively 'org-store-link)
-                                (org-capture nil "i")))
-; (add-to-list 'default-frame-alist '(fullscreen . fullheight)) 
-
-;; (setq doom-font (font-spec :family "FiraCode Nerd Font" :size 17))
-;; See 'C-h v doom-font' for documentation and more examples of what they
-;; accept. For example:
-;;
-;;(setq doom-font (font-spec :family "FiraCode Nerd Font" :size 12 :weight 'semi-light)
-;;      doom-variable-pitch-font (font-spec :family "FiraCode Nerd Font" :size 13))
-;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
-;;
-;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
-;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
-;; refresh your font settings. If Emacs still can't find your font, it likely
-;; wasn't installed correctly. Font issues are rarely Doom issues!
-
-;; There are two ways to load a theme. Both assume the theme is installed and
-;; available. You can either set `doom-theme' or manually load a theme with the
-;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-dracula)
-
-;; This determines the style of line numbers in effect. If set to `nil', line
-;; numbers are disabled. For relative line numbers, set this to `relative'.
-(setq display-line-numbers-type t)
-
-;; If you use `org' and don't want your org files in the default location below,
-;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/org")
-(setq org-roam-directory "~/orgroam")
-
-  (setq dashboard-banner-logo-title "NOW'S YOUR CHANCE TO BE A [[BIG SHOT]]")
-(use-package! ox-hugo)
-;; accept completion from copilot and fallback to company
-(use-package! copilot
-  ;; :hook (prog-mode . copilot-mode)
-  :bind (:map copilot-completion-map
-              ("<tab>" . 'copilot-accept-completion)
-              ("TAB" . 'copilot-accept-completion)
-              ("C-TAB" . 'copilot-accept-completion-by-word)
-              ("C-<tab>" . 'copilot-accept-completion-by-word)))
-(beacon-mode 1)
 (after! org
-  (setq org-agenda-files '(
-                           ;; " ~/Dropbox/emacs/agenda/agenda.org"
-                           ;; "~/Dropbox/emacs/agenda/project.org"
-                           ;; "~/Dropbox/emacs/agenda/inbox.org"
-                           ;; "~/Dropbox/emacs/agenda/someday.org"
-                           "~/org/agenda"))
-  (setq org-agenda-custom-commands
-        '(("d" "今日事"
-           ((agenda ""
-                    ((org-agenda-skip-function '(org-agenda-skip-entry-if 'loop))
-                     (org-agenda-span 1)))))
-          ("v" "Org 看板"
-           ((agenda ""
-                  ((org-agenda-skip-function '(org-agenda-skip-entry-if 'notregexp "\\[#A\\]"))
-                   (org-agenda-entry-types '(:scheduled))
-                   (org-agenda-span 7)
-                   (org-agenda-time-grid nil)
-                   (org-agenda-overriding-header "高优先级 紧急")))
-            (agenda ""
-                  ((org-agenda-skip-function '(org-agenda-skip-entry-if 'regexp "\\[#A\\]"))
-                   (org-agenda-entry-types '(:scheduled))
-                   (org-agenda-span 5)
-                   (org-agenda-time-grid nil)
-                   (org-agenda-overriding-header "中低优先级 紧急")))
-            (tags "+PRIORITY=\"A\""
-                  ((org-agenda-overriding-header "高优先级")))
-            (tags "+PRIORITY=\"B\"" ((org-agenda-overriding-header "中优先级")))
-            (tags "+PRIORITY=\"C\"" ((org-agenda-overriding-header "低优先级"))))))) 
+    (define-key org-mode-map (kbd "C-c c") 'ob-sagemath-execute-async)) ; sagemath异步执行
+(after! org-agenda
+  (setq org-todo-keyword-faces
+   '(("[-]" . +org-todo-active)
+     ("STRT" . +org-todo-active)
+     ("[?]" . +org-todo-onhold)
+     ("WAIT" . +org-todo-onhold)
+     ("HOLD" . +org-todo-onhold)
+     ("PROJ" :foreground "#ff0000" :weight bold)
+     ("NO" . +org-todo-cancel)
+     ("KILL" . +org-todo-cancel))))
 
-          
-  (setq org-agenda-start-day "0d")
-  (setq org-todo-repeat-to-state t)
-  (setq org-capture-templates `(("i" "Inbox" entry (file "~/Dropbox/emacs/agenda/inbox.org")
-                                 ,(concat "* TODO %? \n"
-                                          "/Entered on/ %U"))
-                                ("T" "Tickler" entry
-                                    (file+headine "~/gtd/tickler.org" "Tickler")
-                                    "* %i%? \n %U")))
-(setq org-agenda-prefix-format
-      '((agenda . " %i %-12:c%?-12t% s")
-        (todo   . " %i %-12:c")
-        (tags   . " %i %-12:c")
-        (search . " %i %-12:c")))
-(setq org-refile-targets '((org-agenda-files :maxlevel . 3))) 
-(setq org-refile-use-outline-path 'file) 
-(setq org-outline-path-complete-in-steps nil)
-(define-key org-mode-map (kbd "C-c c") 'ob-sagemath-execute-async))
 
-(setq org-agenda-hide-tags-regexp ".*")
+(setq org-agenda-hide-tags-regexp ".*") ; agenda隐藏tag
 
 (setq org-agenda-prefix-format
       '((agenda . " %i %?-12t% s")
         (todo . " %i ")
         (tags . " %i ")
         (search . " %i ")))
-;; Whenever you reconfigure a package, make sure to wrap your config in an
-;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
-;;
-;;   (after! PACKAGE
-;;     (setq x y))
-;;
-;; The exceptions to this rule:
-;;
-;;   - Setting file/directory variables (like `org-directory')
-;;   - Setting variables which explicitly tell you to set them before their
-;;     package is loaded (see 'C-h v VARIABLE' to look up their documentation).
-;;   - Setting doom variables (which start with 'doom-' or '+').
-;;
-;; Here are some additional functions/macros that will help you configure Doom.
-;;
-;; - `load!' for loading external *.el files relative to this one
-;; - `use-package!' for configuring packages
-;; - `after!' for running code after a package has loaded
-;; - `add-load-path!' for adding directories to the `load-path', relative to
-;;   this file. Emacs searches the `load-path' when you load packages with
-;;   `require' or `use-package'.
-;; - `map!' for binding new keys
-;;
-;; To get information about any of these functions/macros, move the cursor over
-;; the highlighted symbol at press 'K' (non-evil users must press 'C-c c k').
-;; This will open documentation for it, including demos of how they are used.
-;; Alternatively, use `C-h o' to look up a symbol (functions, variables, faces,
- ; etc).
-;;
-;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
-;; they are implemented.
 #+end_src
 
 * Evil keybinding
  #+begin_src emacs-lisp
-(after! evil
-  (setq evil-shift-width 2))
-(setq evil-want-C-i-jump nil)
-(defun repeat-command (proc times)
+(after! evil (setq evil-shift-width 2)) ; 设置evil的缩进宽度
+(setq evil-want-C-i-jump nil)           ; 设置tab键的行为
+(defun repeat-command (proc times)      ; 重复执行数次
   (dotimes (_ times)
 	(funcall proc)))
-(defun my-previous-five-line () ; U = 5u
+(defun my/previous-five-line ()         ; 往下走五行
   (interactive)
   (repeat-command 'evil-previous-line 5))
-(defun my-next-five-line ()
+(defun my/next-five-line ()             ; 往上行五行
   (interactive)
   (repeat-command 'evil-next-line 5))
-(setq my-evil-global-binding '(
+(setq my-evil-global-binding '(         ; colemak 键位的 vi
         ("u" . evil-previous-line)
         ("e" . evil-next-line)
         ("n" . evil-backward-char)
         ("i" . evil-forward-char)
         (",." . evil-jump-item)
-        ("U" . my-previous-five-line)
-        ("E" . my-next-five-line)
+        ("U" . my/previous-five-line)
+        ("E" . my/next-five-line)
         ("N" . evil-beginning-of-line)
         ("I" . evil-end-of-line)
         ("j" . evil-undo)
@@ -211,6 +109,8 @@
         ("C-w e" . evil-window-down)
         ("C-w n" . evil-window-left)
         ("C-w i" . evil-window-right)))
+
+;; 注意到 U 键在 visual line 下不可用，是个 bug
 (dolist (pair my-evil-global-binding)
     (evil-global-set-key 'normal (kbd (car pair)) (cdr pair))
     (evil-global-set-key 'visual (kbd (car pair)) (cdr pair)))
@@ -224,33 +124,34 @@
 #+end_src
 * Emacs-Rime
 #+begin_src emacs-lisp
-(use-package!
-  rime
-  :bind (:map rime-mode-map
-			  ("C-`" . 'rime-send-keybinding))
+(use-package! rime
+  :bind (:map rime-mode-map ("C-`" . 'rime-send-keybinding))
   :custom (default-input-method "rime")
   (rime-librime-root "~/.emacs.d/librime/dist")
   :config
-  (setq         ;; rime-show-candidate 'posframe ;; 用形码吧
-        mode-line-mule-info '((:eval (rime-lighter)))
-        rime-inline-ascii-trigger 'shift-l
+  (global-set-key (kbd "<f13>") 'rime-inline-ascii) ; 用于切换中英文
+  (setq         ;; rime-show-candidate 'posframe ;; 用形码就不需要候选框
         rime-inline-ascii-holder ?x
         rime-user-data-dir "~/.emacs.d/Rime"))
 #+end_src
+* Magit
+#+begin_src emacs-lisp
+(after! magit
+  ;; 检视一些仓库
+  (setq magit-repository-directories '(("~/org/blog" . 0)
+                                       ("~/.doom.d/" . 0))))
+#+end_src
 * Org base
- #+begin_src emacs-lisp
-(setq org-startup-numerated t)
+#+begin_src emacs-lisp
+(setq org-startup-numerated t)          ; 设置org目录编号
 (use-package! grip-mode  ; 用于在网页端实时预览 markdown、org
   :ensure t
-  :config
-  (setq grip-preview-use-webkit t))
+  :config (setq grip-preview-use-webkit t))
 (use-package! ox-gfm)  ; 预览上色
-(use-package! paredit
-  :hook ((scheme-mode racket-mode) . paredit-mode))
-(use-package! evil-paredit
-  :hook ((paredit-mode) . evil-paredit-mode))
-(require 'org-tempo)
-(setq org-structure-template-alist
+(use-package! paredit :hook ((scheme-mode racket-mode) . paredit-mode))
+(use-package! evil-paredit :hook ((paredit-mode) . evil-paredit-mode))
+(require 'org-tempo) ; org模板，<s 补全
+(setq org-structure-template-alist ; org模板，其他语言
       (append org-structure-template-alist
           '(("el" . "src emacs-lisp")
             ("sh" . "src bash")
@@ -261,35 +162,13 @@
             ("pw" . "src powershell"))))
 
 (after! org
-    ;; (add-to-list 'org-preview-latex-process-alist '(xdvsvgm :progams
-    ;;                             ("xelatex" "dvisvgm")
-    ;;                             :discription "xdv > svg"
-    ;;                             :message "you need install the programs: xelatex and dvisvgm."
-    ;;                             :image-input-type "xdv"
-    ;;                             :image-output-type "svg"
-    ;;                             :latex-compiler ("xelatex -interaction nonstopmode -no-pdf -output-directory %o %f")
-    ;;                             :image-converter ("dvisvgm %f -n -b min -c %S -o %O")))
   (setq org-latex-default-packages-alist
         (append org-latex-default-packages-alist
                 '(("" "multirow" t)("" "ctex" t)))
-        org-latex-compiler "xelatex"
-        org-format-latex-options (plist-put org-format-latex-options :scale 1.5)
-        ;; org-preview-latex-default-process 'xdvsvgm
-        ))
-(setq org-babel-python-command "/usr/local/Caskroom/miniforge/base/bin/python")
-;; (setq org-structure-template-alist '(("n" . "notes")
-;;  ("a" . "export ascii")
-;;  ("c" . "center")
-;;  ("C" . "comment")
-;;  ("e" . "example")
-;;  ("E" . "export")
-;;  ("h" . "export html")
-;;  ("l" . "export latex")
-;;  ("q" . "quote")
-;;  ("s" . "src")
-;;  ("v" . "verse")))
-
-(after! cdlatex
+        org-latex-compiler "xelatex"    ; 设置latex编译器，xelatex支持中文
+        org-format-latex-options (plist-put org-format-latex-options :scale 1.5)))
+(setq org-babel-python-command "/usr/local/Caskroom/miniforge/base/bin/python") ; org python 解释器的路径
+(after! cdlatex                         ; cdlatex 快速插入
   (setq cdlatex-math-symbol-alist
       '((?c ("\\mathcal\{\}" nil nil nil))
         (?o ("\\omega" "\\circ" nil nil)))))
@@ -298,48 +177,19 @@
 
 * Org roam
  #+begin_src  emacs-lisp
-(after! org-roam
-  (setq org-roam-completion-everywhere t)
-  (setq org-roam-capture-templates
-        '(("d" "default" plain
-           ""
-           :if-new (file+head "%<%Y%m%d%H>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: %^{tags}\n")
-           :immediate-finish t
-           :unnarrowed t)
-          ("i" "issues" plain
-           "* 环境\n* 报错\n* 原因\n* 解决方法\n* 参见\n "
-           :if-new (file+head "%<%Y%m%d%H>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: %^{tags}\n")
-           :immediate-finish t
-           :unnarrowed t)
-          ;; ... other templates
-          ;; bibliography note template
-          ("r" "bibliography reference" plain "%?"
-           :if-new (file+head "references/${citekey}.org" "#+TITLE: ${title}\n#+FILETAGS: /cite/")
-          :immediate-finish t
-          :unnarrowed t)
-          ("s" "structure of subjects"
-           plain
-           "* 基本概念\n* 发展历史\n* 主要流派\n* 基本理念\n* 知识体系\n* 相关资源\n"
-           :if-new (file+head "%<%Y%m%d%H>-${slug}.org" "#+TITLE: ${title}\n#+FILETAGS: %^{tags}\n")
-           :immediate-finish t
-           :unnarrowed t)))
-  (require 'org-roam-protocol))
-
-(map! :after org
+(map! :after org                        ; roam 的补全
       :map evil-normal-state-map
       :prefix "SPC n r"
       :desc "Add completion"
       "m" #'completion-at-point)
 
-(map! :after org
+(map! :after org                        ; 打开 roam ui
       :map evil-normal-state-map
       :prefix "SPC n r"
       :desc "Go to map"
       "G" #'org-roam-ui-open)
 
-(use-package! websocket
-    :after org-roam)
-
+(use-package! websocket :after org-roam) ; websocket 用于 roam ui
 
 (use-package! org-roam-ui
   :after org-roam
@@ -352,34 +202,75 @@
 
  #+end_src
 
-* Org GTD
+* Org Agenda
+按期的事件安排放最前面。”人无远虑，必有近忧。“只设三天的定期，多了也不看。
+然后是TODO的工作，做一项是一项。
+然后是计划的任务。
+专给读文章开一块，感觉太多文章不读也会产生焦虑。
 
 #+begin_src emacs-lisp
 
-(defun org-summary-todo (n-done n-not-done)
-  "Switch entry to DONE when all subentries are done, to TODO otherwise."
-  (let (org-log-done org-log-states)   ; turn off logging
-    (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 
-(defun org-summary-todo-after-state-change ()
-  "Switch headline to DONE when all subentries are DONE, to TODO otherwise."
-  (let* ((subtree-end (save-excursion (org-end-of-subtree t)))
-         (parent-end (save-excursion (org-up-heading-safe) (point)))
-         (n-done 0)
-         (n-not-done 0))
-    (save-excursion
-      (org-back-to-heading t)
-      (org-show-subtree)
-      (while (and (< (point) subtree-end)
-                  (re-search-forward org-heading-regexp subtree-end t))
-        (let ((state (org-get-todo-state)))
-          (if (string= state "DONE")
-              (setq n-done (1+ n-done))
-            (setq n-not-done (1+ n-not-done)))))
-    (when (= n-not-done 0)
-      (save-excursion
-        (goto-char parent-end)
-        (org-todo "DONE"))))))
+(after! org
+  (setq org-agenda-files '("~/org/agenda")) ; 设置agenda文件夹
+  (setq org-agenda-start-day "0d")          ; 设置agenda开始时间
+  (setq org-todo-repeat-to-state t)         ; 可重复任务的状态
+ (setq org-agenda-custom-commands
+   '(("i" "GTD任务"
+      ((agenda ""
+        ((org-agenda-overriding-header "定期任务安排")
+         (org-agenda-span '3)))
+       (tags-todo "@inbox"
+                  ((org-agenda-overriding-header "收件箱")))
+       (tags-todo "@next-@read+TODO=\"TODO\"|@next-@read+TODO=\"STRT\""
+                  ((org-agenda-overriding-header "采取行动")))
+       (tags-todo "@project"
+                  ((org-agenda-overriding-header "项目")))
+       (tags-todo "@next+@read+TODO=\"TODO\""
+                  ((org-agenda-overriding-header "阅读列表")))
+       (tags-todo "@waiting"
+                  ((org-agenda-overriding-header "等待中")
+                   (org-agenda-sorting-strategy
+                    '(time-up)))))
+      nil)
+     ("x" "搁置任务"
+      ((tags-todo "@stucked|@someday"
+                  ((org-agenda-overriding-header "搁置任务（someday, tickler, reference）"))))
+      nil nil)))
+
+(setq org-agenda-prefix-format
+      '((agenda . " %i %-12:c%?-12t% s")
+        (todo   . " %i %-12:c")
+        (tags   . " %i %-12:c")
+        (search . " %i %-12:c"))))
+;; (setq org-refile-targets '((org-agenda-files :maxlevel . 3))) ; 设置refile目标
+;; (setq org-refile-use-outline-path 'file)
+;; (setq org-outline-path-complete-in-steps nil)
+
+;; (defun org-summary-todo (n-done n-not-done)
+;;   "DEPRECATED"
+;;   (let (org-log-done org-log-states)   ; turn off logging
+;;     (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
+
+;; (defun org-summary-todo-after-state-change ()
+;;   "DEPRECATED Switch headline to DONE when all subentries are DONE, to TODO otherwise."
+;;   (let* ((subtree-end (save-excursion (org-end-of-subtree t)))
+;;          (parent-end (save-excursion (org-up-heading-safe) (point)))
+;;          (n-done 0)
+;;          (n-not-done 0))
+;;     (save-excursion
+;;       (org-back-to-heading t)
+;;       (org-show-subtree)
+;;       (while (and (< (point) subtree-end)
+;;                   (re-search-forward org-heading-regexp subtree-end t))
+;;         (let ((state (org-get-todo-state)))
+;;           (if (string= state "DONE")
+;;               (setq n-done (1+ n-done))
+;;             (setq n-not-done (1+ n-not-done)))))
+;;     (when (= n-not-done 0)
+;;       (save-excursion
+;;         (goto-char parent-end)
+;;         (org-todo "DONE"))))))
 
 ;; (add-hook 'org-after-todo-statistics-hook #'org-summary-todo)
 ;; (add-hook 'org-after-todo-state-change-hook #'org-summary-todo-after-state-change)
@@ -394,10 +285,10 @@
 ;;   (let ((headline-point (org-get-at-bol 'org-hd-marker)))
 ;;     (org-turn-subentries-to-todo headline-point)))
 
-(map! :after org :map evil-normal-state-map
-      :prefix "SPC m"
-      :desc "Toggle subentries to TODO"
-      "X" #'org-toggle-subentries-to-todo)
+;; (map! :after org :map evil-normal-state-map
+;;       :prefix "SPC m"
+;;       :desc "Toggle subentries to TODO"
+;;       "X" #'org-toggle-subentries-to-todo)
 
 
 ;; (setq org-hierarchical-todo-statistics t)
@@ -406,14 +297,22 @@
 
 #+begin_src emacs-lisp
 
+(setq reftex-default-bibliography '("~/org/references.bib"))
+(setq reftex-bibliography-commands '("bibliography" "nobibliography" "addbibresource"))
+(setq cnfonts-personal-fontnames
+      '(;;英文字体
+        ("Liga SFMono Nerd font" "SF Pro Text")
+        ;; 中文字体
+        ("PingFang SC")))
+
 (use-package! org-ref
   :config
-  (setq bibtex-completion-bibliography '("~/Dropbox/emacs/bibliography/references.bib")
-  citar-bibliography '("~/Dropbox/emacs/bibliography/references.bib")
-	bibtex-completion-library-path '("~/Dropbox/emacs/bibliography/bibtex-pdfs/")
-	bibtex-completion-notes-path "~/Dropbox/emacs/bibliography/notes/"
-	citar-library-path '("~/Dropbox/emacs/bibliography/bibtex-pdfs/")
-	citar-notes-path "~/Dropbox/emacs/bibliography/notes/"
+  (setq bibtex-completion-bibliography '("~/org/references.bib") ; bibtex 引用
+  citar-bibliography '("~/org/references.bib")  ; citar 的 bibtex 引用
+	;; bibtex-completion-library-path '("~/Dropbox/emacs/bibliography/bibtex-pdfs/")
+	;; bibtex-completion-notes-path "~/Dropbox/emacs/bibliography/notes/"
+	;; citar-library-path '("~/Dropbox/emacs/bibliography/bibtex-pdfs/")
+	;; citar-notes-path "~/Dropbox/emacs/bibliography/notes/"
 	bibtex-completion-notes-template-multiple-files "* ${author-or-editor}, ${title}, ${journal}, (${year}) :${=type=}: \n\nSee [[cite:&${=key=}]]\n"
 
 	bibtex-completion-additional-search-fields '(keywords)
@@ -427,7 +326,7 @@
 	(lambda (fpath)
 	  (call-process "open" nil 0 nil fpath))))
 
-(use-package! org-roam-bibtex
+(use-package! org-roam-bibtex           ; org roam 的 bibtex，抄的配置
   :after (org-roam citar-org-rom)
   :config
   (require 'citar-org-roam)
@@ -441,11 +340,11 @@
         :annotate #'citar-org-roam--annotate))
   (setq citar-notes-source 'orb-citar-source))
 
-(use-package! citar-org-roam
+(use-package! citar-org-roam            ; citar 的 org roam
   :after (citar org-roam)
   :config (citar-org-roam-mode))
 
-(map! :after org :map evil-normal-state-map
+(map! :after org :map evil-normal-state-map ; 添加引用的快捷键
       :prefix "SPC n e"
       :desc "Insert citation"
       "b" #'citar-insert-citation
@@ -459,6 +358,7 @@
 #+end_src
 
 * Org journal
+** Chinese yearly file
 #+begin_src emacs-lisp
 (setq system-time-locale "zh_CN")
 (setq chinese-calendar-celestial-stem
@@ -468,7 +368,9 @@
 (defvar chinese-shuxiang-name
   ["鼠" "牛" "虎" "兔" "龙" "蛇" "马" "羊" "猴" "鸡" "狗" "猪"])
 (nth 5 (decode-time))
+
 (defun chinese-year (year)
+    "返回农历年份"
   (concat
     (aref chinese-calendar-celestial-stem
             (% (- year 4) 10))
@@ -478,56 +380,146 @@
             (% (- year 4) 12))
     "年"))
 (setq chinese-year-now (chinese-year (nth 5 (decode-time))))
-(setq org-journal-file-type 'yearly)
-(setq org-journal-file-format (concat "%Y-" chinese-year-now))
+(setq org-journal-file-type 'yearly)    ; 设置日记文件类型，每年一个文件
+(setq org-journal-file-format (concat "%Y-" chinese-year-now)) ; 把年份加入文件名
 (setq org-journal-date-format "%Y/%m/%d W%W D%j（%a）")
 (format-time-string "%Y/%m/%d W%W D%j (%a)")
-
-
 #+end_src
-* Org templates
+* Templates
 #+begin_src emacs-lisp
-(setq yas-snippet-dirs (append yas-snippet-dirs
-                               '("~/.doom.d/snippets")))
+(setq yas-snippet-dirs (append yas-snippet-dirs '("~/.doom.d/snippets")))
 #+end_src
 
-* lspl
-
+* Org
+** Org contact
 #+begin_src emacs-lisp
-(setq lsp-clients-clangd-args '("-j=3"
-				"--background-index"
-				"--clang-tidy"
-				"--completion-style=detailed"
-				"--header-insertion=never"
-				"--header-insertion-decorators=0"))
-(after! lsp-clangd (set-lsp-priority! 'clangd 2))
+(setq org-contacts-files '("~/org/contacts.org")) ; 设置联系人文件
 #+end_src
-
 * another packages
+** Dashboard
+#+begin_src emacs-lisp
+(use-package! dashboard                 ; 启动界面
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook)
+  (setq dashboard-startup-banner "~/org/ascii-art.txt")
+  (setq dashboard-banner-logo-title "There to be le Emacs eventually."))
+#+end_src
+
+** elfeed
+*** kickstart
 
 #+begin_src emacs-lisp
-;; (setq org-contacts-files "~/org/contacts.org"
-(use-package! kbd-mode) ; kmonad
-(remove-hook 'doom-first-buffer-hook #'ws-butler-global-mode)
-(use-package! hackernews)
-(setq company-minimum-prefix-length 6)
-(setq rmh-elfeed-org-files (list "~/org/elfeed.org"))
-(use-package! oj
-  :config (setq oj-default-online-judge 'codeforces)
-(setq               oj-home-dir "~/oj")
-(quickrun-set-default "c++" "c++/clang++")
-(setq                oj-login-args "-u for156th@gmail.com -p Oyzh030725"))
-(setq reftex-default-bibliography '("~/Dropbox/emacs/bibliography/references.bib"))
-(setq reftex-bibliography-commands '("bibliography" "nobibliography" "addbibresource"))
-(setq cnfonts-personal-fontnames
-      '(;;英文字体
-        ("Liga SFMono Nerd font")
-        ;; 中文字体)
-        ("PingFang SC")))
-(cnfonts-mode 1)
+(setq elfeed-db-directory "~/org/elfeed") ; elfeed 数据库目录
+(setq rmh-elfeed-org-files (list "~/org/elfeed.org")) ; elfeed org 文件（所有feed）
+(add-hook! 'elfeed-search-mode-hook #'elfeed-update)  ; 自动更新
+(run-at-time nil (* 24 60 60) #'elfeed-update)        ; 每天更新
+#+end_src
+
+*** 订阅
+
+#+begin_src emacs-lisp
+(after! elfeed-org
+  (push '(star elfeed-search-star-title-face) elfeed-search-face-alist)
+  (defalias 'my/elfeed-toggle-star
+    (elfeed-expose #'elfeed-search-toggle-all 'star)))
+
+
+(defun my/elfeed-org-capture ()
+  "把 elfeed entry 抓进 inbox.org."
+  (interactive)
+  (let* ((entries (elfeed-search-selected)))
+    (cl-loop for entry in entries
+             do (let* ((link (elfeed-entry-link entry))
+                       (title (elfeed-entry-title entry))
+                       (date (elfeed-entry-date entry))
+                       (formatted-date (format-time-string "[%Y-%m-%d %H:%M]" date)))
+                  (with-current-buffer (find-file-noselect "~/org/agenda/next.org")
+                    (goto-char (point-max))
+                    (insert "* TODO [阅读] " title " :@read: \n")
+                    (insert "Link: " link "\n")
+                    (insert "Date: " formatted-date "\n")
+                    (insert "\n")
+                    (save-buffer)
+                    (kill-buffer))))))
+#+end_src
+
+*** 书签与红标
+
+#+begin_src emacs-lisp
+(defun my/elfeed-jump-bookmark (name)
+  "elfeed 跳转到书签"
+  (interactive)
+  (bookmark-maybe-load-default-file)
+  (bookmark-jump name))
+
+(map! :after elfeed :map elfeed-search-mode-map
+      :prefix "v"
+      :desc "Mark up the feed"
+      "T" (lambda () (interactive) (my/elfeed-jump-bookmark "starred"))
+      "t" (lambda () (interactive) (my/elfeed-jump-bookmark "starred*"))
+      "C" (lambda () (interactive) (my/elfeed-jump-bookmark "chinese"))
+      "c" (lambda () (interactive) (my/elfeed-jump-bookmark "chinese*")))
+
+(defun my/elfeed-org-entry ()
+  "Capture elfeed entry link to inbox.org."
+  (interactive)
+  (let* ((entries (elfeed-search-selected)))
+    (cl-loop for entry in entries
+             do (let* ((link (elfeed-entry-link entry))
+                       (title (elfeed-entry-title entry))
+                       (date (elfeed-entry-date entry))
+                       ;; (content (elfeed-deref (elfeed-entry-content entry)))
+                       (content-ref (elfeed-entry-content entry))
+                       (formatted-date (format-time-string "[%Y-%m-%d %H:%M]" date)))
+                  (with-current-buffer (find-file-noselect "~/org/agenda/next.org")
+                    (goto-char (point-max))
+                    (insert "* TODO [阅读] " title " :@read: \n")
+                    (insert "Date: " formatted-date "\n")
+                    (insert content-ref)
+                    (insert "\n")
+                    (save-buffer)
+                    (kill-buffer))))))
+
+(defun my/elfeed-star-and-capture ()
+  (interactive)
+  (my/elfeed-toggle-star)
+  (interactive)
+  (my/elfeed-org-capture))
+
+(map! :after elfeed :map elfeed-search-mode-map
+      ;; :prefix "v"
+      :desc "Mark up the feed"
+      "m" #'my/elfeed-toggle-star
+      "M" #'my/elfeed-star-and-capture
+      "Y" #'my/elfeed-org-capture
+      "R" #'elfeed-update
+      "E" #'my/elfeed-org-entry)
+
+(map! :after org :map evil-normal-state-map
+      :prefix "SPC n e"
+      :desc "open elfeed"
+      "l" #'elfeed)
+
+(defface elfeed-search-star-title-face '((t :foreground "#f77"))
+  "Marks a starred Elfeed entry.")
+
+#+end_src
+
+** Company
+
+#+begin_src emacs-lisp
+(setq company-minimum-prefix-length 6)  ; company 补全最小长度
+#+end_src
+** cnfont
+#+begin_src emacs-lisp
+(cnfonts-mode 1)                        ; 中文字体等宽
 (global-set-key (kbd "s--") 'cnfonts-decrease-fontsize)
 (global-set-key (kbd "s-=") 'cnfonts-increase-fontsize)
-(use-package! sage-shell-mode)
+#+end_src
+** sagemath
+#+begin_src emacs-lisp
+(use-package! sage-shell-mode)          ; sage shell
 (use-package! ob-sagemath
   :config
   (setq org-babel-default-header-args:sage '((:session . t)
@@ -536,10 +528,24 @@
         org-confirm-babel-evaluate nil
         org-export-babel-evaluate nil
         org-startup-with-inline-images t))
+#+end_src
+** org-babel
+#+begin_src emacs-lisp
+
 (use-package! ob-powershell
   :config
   (add-to-list 'load-path "~/.emacs.d/lisp/ob-powershell"))
-(use-package! oz)
+#+end_src
 
-(add-to-list 'load-path "~/.emacs.d/site-lisp/emacs-application-framework/")
+** copilot
+#+begin_src emacs-lisp
+; 人工智能为写作赋能
+(use-package! copilot
+  ;; :hook (org-mode . copilot-mode)
+  :bind (:map copilot-completion-map
+              ("<tab>" . 'copilot-accept-completion)
+              ("TAB" . 'copilot-accept-completion)
+              ("C-TAB" . 'copilot-accept-completion-by-word)
+              ("C-<tab>" . 'copilot-accept-completion-by-word)))
+
 #+end_src
